@@ -558,7 +558,21 @@ class FE8Randomizer:
     def select_new_inventory(
         self, job: JobData, items: bytes, logic: dict[str, Any]
     ) -> list[int]:
-        return [self.select_new_item(job, item_id, logic) for item_id in items]
+        New_Inventory= [self.select_new_item(job, item_id, logic) for item_id in items]
+        if job.is_promoted and WeaponKind.STAFF in job.usable_weapons:
+                Only_Staff=True
+                Item_Slot=0
+                for item_id in New_Inventory:
+                    if item_id == 0:
+                        break
+                    Item_Slot+=1
+                    if item_id in self.weapons_by_id:
+                        weapon_attrs = self.weapons_by_id[item_id]
+                        if weapon_attrs.kind != WeaponKind.STAFF:
+                            Only_Staff=False
+                if Only_Staff and Item_Slot < 4:
+                    New_Inventory[Item_Slot]=self.select_new_item(job, self.weapons_by_name["Fire"].id, dict["must_fight": True])
+        return New_Inventory
 
     def rewrite_coords(self, offset: int, x: int, y: int):
         old_coords = read_short_le(self.rom, offset)
@@ -651,7 +665,8 @@ class FE8Randomizer:
                 self.character_store[char] = new_job
 
         new_inventory = self.select_new_inventory(new_job, inventory, logic)
-
+        
+        
         self.rom[data_offset + 1] = new_job.id
         for i, item_id in enumerate(new_inventory):
             self.rom[data_offset + INVENTORY_INDEX + i] = item_id
