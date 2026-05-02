@@ -68,6 +68,7 @@ from .constants import (
     INTERNAL_RANDO_WEAPONS_ENTRY_SIZE,
     INTERNAL_RANDO_WEAPONS_MAX_CLASSES,
     INTERNAL_RANDO_WEAPON_TABLE_ROWS,
+    INTERNAL_RANDO_WEAPONS_POOL_7,
     FEMALE_JOBS,
     SONG_TABLE_BASE,
     SONG_SIZE,
@@ -368,6 +369,19 @@ def weapon_usable(weapon: WeaponData, job: JobData, logic: dict[str, Any]) -> bo
 
     if any(lock not in job.tags for lock in weapon.locks):
         return False
+    
+    # Removes staffs the AI can't use or can't use effectivly
+    if not ("player" in logic and logic["player"]) and weapon.name in [
+        "Warp",
+        "Torch",
+        "Hammerne",
+        "Unlock",
+        "Barrier",
+        "Restore",
+        "Rescue"
+    ]:
+        return False
+
 
     if "must_fight" in logic and weapon.kind in [
         WeaponKind.ITEM,
@@ -787,6 +801,9 @@ class FE8Randomizer:
                 self.rom[offs + j] = new_job.id
                 jobset.add(new_job)
 
+        # Weapon pool 7 is for ranged bonewalkers but normal lance units are using it now.
+        # So should use a weapon of equal rank as runesword.
+        self.rom[INTERNAL_RANDO_WEAPONS_POOL_7]= self.weapons_by_name["Brave Lance"].id
         # CR-someday cam: There is a lot of hardcoding going on here. It would
         # be nice to move some of the special-casing here to the data files.
         for i, job in enumerate(jobset.iter()):
