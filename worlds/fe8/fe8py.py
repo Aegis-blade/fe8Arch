@@ -408,6 +408,18 @@ def weapon_usable(weapon: WeaponData, job: JobData, logic: dict[str, Any]) -> bo
     ]:
         return False
 
+    # weapons the AI can not use properly
+    if ("player" not in logic or ("player" in logic and logic["player"]==False)) and weapon.name in [
+        "Restore",
+        "Warp",
+        "Rescue",
+        "Torch",
+        "Hammerne",
+        "Unlock",
+        "Barrier"
+    ]:
+        return False
+
     return True
 
 
